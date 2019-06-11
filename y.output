@@ -1,0 +1,882 @@
+Não-terminais inúteis na gramática
+
+   pfalsa
+   condicao
+   relacao
+   expressao
+   op_un
+   outros_termos
+   op_ad
+   termo
+   mais_fatores
+   op_mul
+   fator
+
+
+Terminais não utilizados na gramática
+
+   IF
+   THEN
+   ELSE
+   WHILE
+   DO
+   FOR
+   TO
+   GREAT_EQ
+   LESS_EQ
+   DIFF
+   ATT
+   GREATER
+   LESSER
+   PLUS
+   MINUS
+   STAR
+   DASH
+   ERRO_ID
+   ERRO_FLOAT
+   ERRO_G
+
+
+Regras inúteis na gramática
+
+   35 pfalsa: ELSE cmd
+   36       | /* vazio */
+
+   37 cmd: WHILE OPEN_PAR condicao CLOSE_PAR DO cmd
+   38    | IF condicao THEN cmd pfalsa
+   39    | ID ATT expressao
+   40    | FOR ID ATT expressao TO expressao DO corpo
+
+   41 condicao: expressao relacao expressao
+
+   42 relacao: EQ
+   43        | DIFF
+   44        | GREAT_EQ
+   45        | LESS_EQ
+   46        | GREATER
+   47        | LESSER
+
+   48 expressao: termo outros_termos
+
+   49 op_un: PLUS
+   50      | MINUS
+   51      | /* vazio */
+
+   52 outros_termos: op_ad termo outros_termos
+
+   53 op_ad: PLUS
+   54      | MINUS
+
+   55 termo: op_un fator mais_fatores
+
+   56 mais_fatores: op_mul fator mais_fatores
+   57             | /* vazio */
+
+   58 op_mul: STAR
+   59       | DASH
+
+   60 fator: ID
+   61      | numero
+   62      | OPEN_PAR expressao CLOSE_PAR
+
+
+Gramática
+
+    0 $accept: program $end
+
+    1 program: PROGRAM ID SEMICOLON corpo DOT
+
+    2 corpo: dc BEGIN_P comandos END_P
+
+    3 dc: dc_c dc_v dc_p
+
+    4 dc_c: CONST ID EQ numero SEMICOLON dc_c
+    5     | /* vazio */
+
+    6 dc_v: VAR variaveis COLON tipo_var SEMICOLON dc_v
+    7     | /* vazio */
+
+    8 tipo_var: FLOAT
+    9         | INT
+
+   10 variaveis: ID mais_var
+
+   11 mais_var: COMMA variaveis
+   12         | /* vazio */
+
+   13 dc_p: PROC ID parametros SEMICOLON corpo_p dc_p
+   14     | /* vazio */
+
+   15 parametros: OPEN_PAR lista_par CLOSE_PAR
+   16           | /* vazio */
+
+   17 lista_par: variaveis COLON tipo_var mais_par
+
+   18 mais_par: SEMICOLON lista_par
+   19         | /* vazio */
+
+   20 corpo_p: dc_loc BEGIN_P comandos END_P SEMICOLON
+
+   21 dc_loc: dc_v
+
+   22 lista_arg: OPEN_PAR argumentos CLOSE_PAR
+   23          | /* vazio */
+
+   24 argumentos: ID mais_ident
+
+   25 mais_ident: SEMICOLON argumentos
+   26           | /* vazio */
+
+   27 comandos: cmd SEMICOLON
+   28         | /* vazio */
+
+   29 cmd: READ OPEN_PAR variaveis CLOSE_PAR
+   30    | WRITE OPEN_PAR variaveis CLOSE_PAR
+   31    | ID lista_arg
+   32    | BEGIN_P comandos END_P
+
+   33 numero: NUM_INT
+   34       | NUM_REAL
+
+
+Terminais, com as regras onde eles aparecem
+
+$end (0) 0
+error (256)
+PROGRAM (258) 1
+BEGIN_P (259) 2 20 32
+END_P (260) 2 20 32
+CONST (261) 4
+VAR (262) 6
+FLOAT (263) 8
+INT (264) 9
+PROC (265) 13
+IF (266)
+THEN (267)
+ELSE (268)
+READ (269) 29
+WRITE (270) 30
+WHILE (271)
+DO (272)
+FOR (273)
+TO (274)
+GREAT_EQ (275)
+LESS_EQ (276)
+DIFF (277)
+ATT (278)
+EQ (279) 4
+GREATER (280)
+LESSER (281)
+PLUS (282)
+MINUS (283)
+STAR (284)
+DASH (285)
+CLOSE_PAR (286) 15 22 29 30
+OPEN_PAR (287) 15 22 29 30
+COLON (288) 6 17
+DOT (289) 1
+SEMICOLON (290) 1 4 6 13 18 20 25 27
+COMMA (291) 11
+NUM_INT (292) 33
+NUM_REAL (293) 34
+ID (294) 1 4 10 13 24 31
+ERRO_ID (295)
+ERRO_FLOAT (296)
+ERRO_G (297)
+
+
+Não-terminais com as regras onde eles aparecem
+
+$accept (43)
+    à esquerda: 0
+program (44)
+    à esquerda: 1, à direita: 0
+corpo (45)
+    à esquerda: 2, à direita: 1
+dc (46)
+    à esquerda: 3, à direita: 2
+dc_c (47)
+    à esquerda: 4 5, à direita: 3 4
+dc_v (48)
+    à esquerda: 6 7, à direita: 3 6 21
+tipo_var (49)
+    à esquerda: 8 9, à direita: 6 17
+variaveis (50)
+    à esquerda: 10, à direita: 6 11 17 29 30
+mais_var (51)
+    à esquerda: 11 12, à direita: 10
+dc_p (52)
+    à esquerda: 13 14, à direita: 3 13
+parametros (53)
+    à esquerda: 15 16, à direita: 13
+lista_par (54)
+    à esquerda: 17, à direita: 15 18
+mais_par (55)
+    à esquerda: 18 19, à direita: 17
+corpo_p (56)
+    à esquerda: 20, à direita: 13
+dc_loc (57)
+    à esquerda: 21, à direita: 20
+lista_arg (58)
+    à esquerda: 22 23, à direita: 31
+argumentos (59)
+    à esquerda: 24, à direita: 22 25
+mais_ident (60)
+    à esquerda: 25 26, à direita: 24
+comandos (61)
+    à esquerda: 27 28, à direita: 2 20 32
+cmd (62)
+    à esquerda: 29 30 31 32, à direita: 27
+numero (63)
+    à esquerda: 33 34, à direita: 4
+
+
+estado 0
+
+    0 $accept: . program $end
+
+    PROGRAM  deslocar, e ir ao estado 1
+
+    program  ir ao estado 2
+
+
+estado 1
+
+    1 program: PROGRAM . ID SEMICOLON corpo DOT
+
+    ID  deslocar, e ir ao estado 3
+
+
+estado 2
+
+    0 $accept: program . $end
+
+    $end  deslocar, e ir ao estado 4
+
+
+estado 3
+
+    1 program: PROGRAM ID . SEMICOLON corpo DOT
+
+    SEMICOLON  deslocar, e ir ao estado 5
+
+
+estado 4
+
+    0 $accept: program $end .
+
+    $padrão  aceitar
+
+
+estado 5
+
+    1 program: PROGRAM ID SEMICOLON . corpo DOT
+
+    CONST  deslocar, e ir ao estado 6
+
+    $padrão  reduzir usando a regra 5 (dc_c)
+
+    corpo  ir ao estado 7
+    dc     ir ao estado 8
+    dc_c   ir ao estado 9
+
+
+estado 6
+
+    4 dc_c: CONST . ID EQ numero SEMICOLON dc_c
+
+    ID  deslocar, e ir ao estado 10
+
+
+estado 7
+
+    1 program: PROGRAM ID SEMICOLON corpo . DOT
+
+    DOT  deslocar, e ir ao estado 11
+
+
+estado 8
+
+    2 corpo: dc . BEGIN_P comandos END_P
+
+    BEGIN_P  deslocar, e ir ao estado 12
+
+
+estado 9
+
+    3 dc: dc_c . dc_v dc_p
+
+    VAR  deslocar, e ir ao estado 13
+
+    $padrão  reduzir usando a regra 7 (dc_v)
+
+    dc_v  ir ao estado 14
+
+
+estado 10
+
+    4 dc_c: CONST ID . EQ numero SEMICOLON dc_c
+
+    EQ  deslocar, e ir ao estado 15
+
+
+estado 11
+
+    1 program: PROGRAM ID SEMICOLON corpo DOT .
+
+    $padrão  reduzir usando a regra 1 (program)
+
+
+estado 12
+
+    2 corpo: dc BEGIN_P . comandos END_P
+
+    BEGIN_P  deslocar, e ir ao estado 16
+    READ     deslocar, e ir ao estado 17
+    WRITE    deslocar, e ir ao estado 18
+    ID       deslocar, e ir ao estado 19
+
+    $padrão  reduzir usando a regra 28 (comandos)
+
+    comandos  ir ao estado 20
+    cmd       ir ao estado 21
+
+
+estado 13
+
+    6 dc_v: VAR . variaveis COLON tipo_var SEMICOLON dc_v
+
+    ID  deslocar, e ir ao estado 22
+
+    variaveis  ir ao estado 23
+
+
+estado 14
+
+    3 dc: dc_c dc_v . dc_p
+
+    PROC  deslocar, e ir ao estado 24
+
+    $padrão  reduzir usando a regra 14 (dc_p)
+
+    dc_p  ir ao estado 25
+
+
+estado 15
+
+    4 dc_c: CONST ID EQ . numero SEMICOLON dc_c
+
+    NUM_INT   deslocar, e ir ao estado 26
+    NUM_REAL  deslocar, e ir ao estado 27
+
+    numero  ir ao estado 28
+
+
+estado 16
+
+   32 cmd: BEGIN_P . comandos END_P
+
+    BEGIN_P  deslocar, e ir ao estado 16
+    READ     deslocar, e ir ao estado 17
+    WRITE    deslocar, e ir ao estado 18
+    ID       deslocar, e ir ao estado 19
+
+    $padrão  reduzir usando a regra 28 (comandos)
+
+    comandos  ir ao estado 29
+    cmd       ir ao estado 21
+
+
+estado 17
+
+   29 cmd: READ . OPEN_PAR variaveis CLOSE_PAR
+
+    OPEN_PAR  deslocar, e ir ao estado 30
+
+
+estado 18
+
+   30 cmd: WRITE . OPEN_PAR variaveis CLOSE_PAR
+
+    OPEN_PAR  deslocar, e ir ao estado 31
+
+
+estado 19
+
+   31 cmd: ID . lista_arg
+
+    OPEN_PAR  deslocar, e ir ao estado 32
+
+    $padrão  reduzir usando a regra 23 (lista_arg)
+
+    lista_arg  ir ao estado 33
+
+
+estado 20
+
+    2 corpo: dc BEGIN_P comandos . END_P
+
+    END_P  deslocar, e ir ao estado 34
+
+
+estado 21
+
+   27 comandos: cmd . SEMICOLON
+
+    SEMICOLON  deslocar, e ir ao estado 35
+
+
+estado 22
+
+   10 variaveis: ID . mais_var
+
+    COMMA  deslocar, e ir ao estado 36
+
+    $padrão  reduzir usando a regra 12 (mais_var)
+
+    mais_var  ir ao estado 37
+
+
+estado 23
+
+    6 dc_v: VAR variaveis . COLON tipo_var SEMICOLON dc_v
+
+    COLON  deslocar, e ir ao estado 38
+
+
+estado 24
+
+   13 dc_p: PROC . ID parametros SEMICOLON corpo_p dc_p
+
+    ID  deslocar, e ir ao estado 39
+
+
+estado 25
+
+    3 dc: dc_c dc_v dc_p .
+
+    $padrão  reduzir usando a regra 3 (dc)
+
+
+estado 26
+
+   33 numero: NUM_INT .
+
+    $padrão  reduzir usando a regra 33 (numero)
+
+
+estado 27
+
+   34 numero: NUM_REAL .
+
+    $padrão  reduzir usando a regra 34 (numero)
+
+
+estado 28
+
+    4 dc_c: CONST ID EQ numero . SEMICOLON dc_c
+
+    SEMICOLON  deslocar, e ir ao estado 40
+
+
+estado 29
+
+   32 cmd: BEGIN_P comandos . END_P
+
+    END_P  deslocar, e ir ao estado 41
+
+
+estado 30
+
+   29 cmd: READ OPEN_PAR . variaveis CLOSE_PAR
+
+    ID  deslocar, e ir ao estado 22
+
+    variaveis  ir ao estado 42
+
+
+estado 31
+
+   30 cmd: WRITE OPEN_PAR . variaveis CLOSE_PAR
+
+    ID  deslocar, e ir ao estado 22
+
+    variaveis  ir ao estado 43
+
+
+estado 32
+
+   22 lista_arg: OPEN_PAR . argumentos CLOSE_PAR
+
+    ID  deslocar, e ir ao estado 44
+
+    argumentos  ir ao estado 45
+
+
+estado 33
+
+   31 cmd: ID lista_arg .
+
+    $padrão  reduzir usando a regra 31 (cmd)
+
+
+estado 34
+
+    2 corpo: dc BEGIN_P comandos END_P .
+
+    $padrão  reduzir usando a regra 2 (corpo)
+
+
+estado 35
+
+   27 comandos: cmd SEMICOLON .
+
+    $padrão  reduzir usando a regra 27 (comandos)
+
+
+estado 36
+
+   11 mais_var: COMMA . variaveis
+
+    ID  deslocar, e ir ao estado 22
+
+    variaveis  ir ao estado 46
+
+
+estado 37
+
+   10 variaveis: ID mais_var .
+
+    $padrão  reduzir usando a regra 10 (variaveis)
+
+
+estado 38
+
+    6 dc_v: VAR variaveis COLON . tipo_var SEMICOLON dc_v
+
+    FLOAT  deslocar, e ir ao estado 47
+    INT    deslocar, e ir ao estado 48
+
+    tipo_var  ir ao estado 49
+
+
+estado 39
+
+   13 dc_p: PROC ID . parametros SEMICOLON corpo_p dc_p
+
+    OPEN_PAR  deslocar, e ir ao estado 50
+
+    $padrão  reduzir usando a regra 16 (parametros)
+
+    parametros  ir ao estado 51
+
+
+estado 40
+
+    4 dc_c: CONST ID EQ numero SEMICOLON . dc_c
+
+    CONST  deslocar, e ir ao estado 6
+
+    $padrão  reduzir usando a regra 5 (dc_c)
+
+    dc_c  ir ao estado 52
+
+
+estado 41
+
+   32 cmd: BEGIN_P comandos END_P .
+
+    $padrão  reduzir usando a regra 32 (cmd)
+
+
+estado 42
+
+   29 cmd: READ OPEN_PAR variaveis . CLOSE_PAR
+
+    CLOSE_PAR  deslocar, e ir ao estado 53
+
+
+estado 43
+
+   30 cmd: WRITE OPEN_PAR variaveis . CLOSE_PAR
+
+    CLOSE_PAR  deslocar, e ir ao estado 54
+
+
+estado 44
+
+   24 argumentos: ID . mais_ident
+
+    SEMICOLON  deslocar, e ir ao estado 55
+
+    $padrão  reduzir usando a regra 26 (mais_ident)
+
+    mais_ident  ir ao estado 56
+
+
+estado 45
+
+   22 lista_arg: OPEN_PAR argumentos . CLOSE_PAR
+
+    CLOSE_PAR  deslocar, e ir ao estado 57
+
+
+estado 46
+
+   11 mais_var: COMMA variaveis .
+
+    $padrão  reduzir usando a regra 11 (mais_var)
+
+
+estado 47
+
+    8 tipo_var: FLOAT .
+
+    $padrão  reduzir usando a regra 8 (tipo_var)
+
+
+estado 48
+
+    9 tipo_var: INT .
+
+    $padrão  reduzir usando a regra 9 (tipo_var)
+
+
+estado 49
+
+    6 dc_v: VAR variaveis COLON tipo_var . SEMICOLON dc_v
+
+    SEMICOLON  deslocar, e ir ao estado 58
+
+
+estado 50
+
+   15 parametros: OPEN_PAR . lista_par CLOSE_PAR
+
+    ID  deslocar, e ir ao estado 22
+
+    variaveis  ir ao estado 59
+    lista_par  ir ao estado 60
+
+
+estado 51
+
+   13 dc_p: PROC ID parametros . SEMICOLON corpo_p dc_p
+
+    SEMICOLON  deslocar, e ir ao estado 61
+
+
+estado 52
+
+    4 dc_c: CONST ID EQ numero SEMICOLON dc_c .
+
+    $padrão  reduzir usando a regra 4 (dc_c)
+
+
+estado 53
+
+   29 cmd: READ OPEN_PAR variaveis CLOSE_PAR .
+
+    $padrão  reduzir usando a regra 29 (cmd)
+
+
+estado 54
+
+   30 cmd: WRITE OPEN_PAR variaveis CLOSE_PAR .
+
+    $padrão  reduzir usando a regra 30 (cmd)
+
+
+estado 55
+
+   25 mais_ident: SEMICOLON . argumentos
+
+    ID  deslocar, e ir ao estado 44
+
+    argumentos  ir ao estado 62
+
+
+estado 56
+
+   24 argumentos: ID mais_ident .
+
+    $padrão  reduzir usando a regra 24 (argumentos)
+
+
+estado 57
+
+   22 lista_arg: OPEN_PAR argumentos CLOSE_PAR .
+
+    $padrão  reduzir usando a regra 22 (lista_arg)
+
+
+estado 58
+
+    6 dc_v: VAR variaveis COLON tipo_var SEMICOLON . dc_v
+
+    VAR  deslocar, e ir ao estado 13
+
+    $padrão  reduzir usando a regra 7 (dc_v)
+
+    dc_v  ir ao estado 63
+
+
+estado 59
+
+   17 lista_par: variaveis . COLON tipo_var mais_par
+
+    COLON  deslocar, e ir ao estado 64
+
+
+estado 60
+
+   15 parametros: OPEN_PAR lista_par . CLOSE_PAR
+
+    CLOSE_PAR  deslocar, e ir ao estado 65
+
+
+estado 61
+
+   13 dc_p: PROC ID parametros SEMICOLON . corpo_p dc_p
+
+    VAR  deslocar, e ir ao estado 13
+
+    $padrão  reduzir usando a regra 7 (dc_v)
+
+    dc_v     ir ao estado 66
+    corpo_p  ir ao estado 67
+    dc_loc   ir ao estado 68
+
+
+estado 62
+
+   25 mais_ident: SEMICOLON argumentos .
+
+    $padrão  reduzir usando a regra 25 (mais_ident)
+
+
+estado 63
+
+    6 dc_v: VAR variaveis COLON tipo_var SEMICOLON dc_v .
+
+    $padrão  reduzir usando a regra 6 (dc_v)
+
+
+estado 64
+
+   17 lista_par: variaveis COLON . tipo_var mais_par
+
+    FLOAT  deslocar, e ir ao estado 47
+    INT    deslocar, e ir ao estado 48
+
+    tipo_var  ir ao estado 69
+
+
+estado 65
+
+   15 parametros: OPEN_PAR lista_par CLOSE_PAR .
+
+    $padrão  reduzir usando a regra 15 (parametros)
+
+
+estado 66
+
+   21 dc_loc: dc_v .
+
+    $padrão  reduzir usando a regra 21 (dc_loc)
+
+
+estado 67
+
+   13 dc_p: PROC ID parametros SEMICOLON corpo_p . dc_p
+
+    PROC  deslocar, e ir ao estado 24
+
+    $padrão  reduzir usando a regra 14 (dc_p)
+
+    dc_p  ir ao estado 70
+
+
+estado 68
+
+   20 corpo_p: dc_loc . BEGIN_P comandos END_P SEMICOLON
+
+    BEGIN_P  deslocar, e ir ao estado 71
+
+
+estado 69
+
+   17 lista_par: variaveis COLON tipo_var . mais_par
+
+    SEMICOLON  deslocar, e ir ao estado 72
+
+    $padrão  reduzir usando a regra 19 (mais_par)
+
+    mais_par  ir ao estado 73
+
+
+estado 70
+
+   13 dc_p: PROC ID parametros SEMICOLON corpo_p dc_p .
+
+    $padrão  reduzir usando a regra 13 (dc_p)
+
+
+estado 71
+
+   20 corpo_p: dc_loc BEGIN_P . comandos END_P SEMICOLON
+
+    BEGIN_P  deslocar, e ir ao estado 16
+    READ     deslocar, e ir ao estado 17
+    WRITE    deslocar, e ir ao estado 18
+    ID       deslocar, e ir ao estado 19
+
+    $padrão  reduzir usando a regra 28 (comandos)
+
+    comandos  ir ao estado 74
+    cmd       ir ao estado 21
+
+
+estado 72
+
+   18 mais_par: SEMICOLON . lista_par
+
+    ID  deslocar, e ir ao estado 22
+
+    variaveis  ir ao estado 59
+    lista_par  ir ao estado 75
+
+
+estado 73
+
+   17 lista_par: variaveis COLON tipo_var mais_par .
+
+    $padrão  reduzir usando a regra 17 (lista_par)
+
+
+estado 74
+
+   20 corpo_p: dc_loc BEGIN_P comandos . END_P SEMICOLON
+
+    END_P  deslocar, e ir ao estado 76
+
+
+estado 75
+
+   18 mais_par: SEMICOLON lista_par .
+
+    $padrão  reduzir usando a regra 18 (mais_par)
+
+
+estado 76
+
+   20 corpo_p: dc_loc BEGIN_P comandos END_P . SEMICOLON
+
+    SEMICOLON  deslocar, e ir ao estado 77
+
+
+estado 77
+
+   20 corpo_p: dc_loc BEGIN_P comandos END_P SEMICOLON .
+
+    $padrão  reduzir usando a regra 20 (corpo_p)

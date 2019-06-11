@@ -65,4 +65,10 @@ erro (@|_|&|$|!|%)*
 
 %%
 
+int init(void){
+	yylex();
+	
+	return 0;
+}
+
 
