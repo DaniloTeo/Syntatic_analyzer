@@ -1,0 +1,9 @@
+Observe that this gives us empty strings at the start and the end (to understand why, try doing 'xx'.split('x')). We get the same tokens, but without the empty strings, with re.findall(r'\w+', raw), using a pattern that matches the words instead of the spaces. Now that we're matching the words, we're in a position to extend the regular expression to cover a wider range of cases. The regular expression «\w+|\S\w*» will first try to match any sequence of word characters. If no match is found, it will try to match any non-whitespace character (\S is the complement of \s) followed by further word characters. This means that punctuation is grouped with any following letters (e.g. 's) but that sequences of two or more punctuation characters are separated.
+  	
+
+>>> re.findall(r'\w+|\S\w*', raw)
+["'When", 'I', "'M", 'a', 'Duchess', ',', "'", 'she', 'said', 'to', 'herself', ',',
+'(not', 'in', 'a', 'very', 'hopeful', 'tone', 'though', ')', ',', "'I", 'won', "'t",
+'have', 'any', 'pepper', 'in', 'my', 'kitchen', 'AT', 'ALL', '.', 'Soup', 'does',
+'very', 'well', 'without', '-', '-Maybe', 'it', "'s", 'always', 'pepper', 'that',
+'makes', 'people', 'hot', '-tempered', ',', "'", '.', '.', '.']
