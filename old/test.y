@@ -34,10 +34,10 @@ cmd: READ OPEN_PAR variaveis CLOSE_PAR
 	| WRITE OPEN_PAR variaveis CLOSE_PAR
 	| WHILE OPEN_PAR condicao CLOSE_PAR DO cmd
 	| IF condicao THEN cmd pfalsa
-	| ID ATT expressao
-	| ID lista_arg
+	| ID cmd_aux
 	| BEGIN_P comandos END_P
 	| FOR ID ATT expressao TO expressao DO corpo;
+cmd_aux: ATT expressao | lista_arg;
 condicao: expressao relacao expressao;
 relacao: EQ | DIFF | GREAT_EQ | LESS_EQ | GREATER | LESSER;
 expressao: termo outros_termos;
