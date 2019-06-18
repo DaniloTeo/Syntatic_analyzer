@@ -1,0 +1,7 @@
+program	lalg;
+{teste}
+var a: integer;
+begin
+a := 42
+read(a, @, 1)
+end.
