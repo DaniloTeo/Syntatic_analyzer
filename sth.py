@@ -1,9 +1,11 @@
 import re
+from nltk.tokenize
 
 '''
 TO DO:
-	substituir todos os 'simb' pela lista de simbolos de sincronizacao
-	de cada chamada, seja la como definir isso (qualquer coisa apelamos pro ';')
+	Implementar a obter_simbolo();
+	Implementar o parsing neste codigo;
+	Implementar regex_match.
 	
 	arrumar os parametros para a funcao de erro e as chamadas dela tb
 '''
@@ -12,7 +14,7 @@ TO DO:
 LAMBDA = '%$'
 ID = '[a-zA-Z][a-zA-Z0-9]*'
 NUM_INT = '\d+'
-NUM_REAL = "\d+[.]\d+"
+NUM_REAL = "\d+.\d+"
 
 
 #------------------------------------------------------------------------------------------------------------------
