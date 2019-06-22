@@ -148,7 +148,7 @@ def dc(S):
 def dc_c(S):
 	if simb == 'const':
 		obter_simbolo()
-		if simb == ID:
+		if simb == ID: 
 			obter_simbolo()
 			if simb == '=':
 				obter_simbolo()
@@ -158,7 +158,7 @@ def dc_c(S):
 		else:
 			erro('identificador', '=', S)
 	else:
-		continue #lambda
+		continue #lambda 
 
 
 # <dc_v> -> var <variaveis> : <tipo_var> ; <dc_v> | λ
@@ -185,8 +185,8 @@ def tipo_var(S):
 	else:
 		if simb == 'int':
 			obter_simbolo()
-			else:
-				erro('tipo invalido', [], S)
+		else:
+			erro('tipo invalido', [], S)
 
 # <variaveis> ::= ident <mais_var>
 def variaveis(S):
@@ -499,3 +499,8 @@ def fator(S):
 def numero(S):
 	pass
 	# Como usar regex para comparacao?????
+
+#Ficar atento que isso é um regex match e nao um regex contains
+def b_regex_match(pattern, string):
+	return re.match(pattern, string) != None
+
