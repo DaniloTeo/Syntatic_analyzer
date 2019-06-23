@@ -3,11 +3,12 @@ from nltk.tokenize import RegexpTokenizer
 
 '''
 TO DO:
-	Implementar a obter_simbolo();
-	Implementar o parsing neste codigo;
-	Implementar regex_match.
-	
-	arrumar os parametros para a funcao de erro e as chamadas dela tb
+	Implementar a obter_simbolo(); - DONE
+	Implementar o parsing neste codigo; - DONE
+	Implementar regex_match. - DONE
+
+	Arrumar os parametros para a funcao de erro e as chamadas dela tb
+	Implementar uma main() com mensagem de sucesso ou nao
 '''
 
 
@@ -132,14 +133,19 @@ codigo = tok.tokenize(raw)
 # posicao do leitor do programa sobre o codigo
 pos = 0
 
+error_count = 0
+
 def obter_simbolo():
 	pos += 1
 
-def erro(esp, simb, seguidor): #????
-	print('Erro!!\ttoken "{esp}" esperado!')
-	aux = simb #copia!!
-	while(aux not in seguidor):
-		aux = obter_simbolo()
+def erro(msg, conjunto_sinc): 
+	print('Erro!!\ttoken "{msg}" esperado!')
+	error_count += 1
+
+	while codigo[pos] not in conjunto_sinc:
+		obter_simbolo()
+	
+		
 
 
 # <programa> -> program ident ; <corpo> .
@@ -542,8 +548,14 @@ def fator(S):
 
 # <numero> ::= numero_int | numero_real
 def numero(S):
-	pass
-	# Como usar regex para comparacao?????
+	if b_regex_match(NUM_INT, simb):
+		obter_simbolo()
+	
+	elif b_regex_match(NUM_REAL, simb):
+		obter_simbolo()
+	
+	else:
+		erro('Numero real/inteiro', [], S)
 
 #Ficar atento que isso é um regex match e nao um regex contains
 def b_regex_match(pattern, string):
