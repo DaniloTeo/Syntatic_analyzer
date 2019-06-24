@@ -1,0 +1,43 @@
+
+## A gramatica abaixo é uma leve alteração da gramática da LALG fornecida pelo professor.
+## Consta uma produção a mais (cmd_aux) que evita transitividade a esquerda na gramatica.
+
+
+program -> PROGRAM ID SEMICOLON corpo DOT
+corpo -> dc BEGIN_P comandos END_P
+dc -> dc_c dc_v dc_p
+dc_c -> CONST ID EQ numero SEMICOLON dc_c | LAMBDA
+dc_v -> VAR variaveis COLON tipo_var SEMICOLON dc_v | LAMBDA
+tipo_var -> FLOAT | INT
+variaveis -> ID mais_var
+mais_var -> COMMA variaveis | LAMBDA
+dc_p -> PROC ID parametros SEMICOLON corpo_p dc_p| LAMBDA
+parametros -> OPEN_PAR lista_par CLOSE_PAR | LAMBDA
+lista_par -> variaveis COLON tipo_var mais_par
+mais_par -> SEMICOLON lista_par | LAMBDA
+corpo_p -> dc_loc BEGIN_P comandos END_P SEMICOLON
+dc_loc -> dc_v
+lista_arg -> OPEN_PAR argumentos CLOSE_PAR | LAMBDA
+argumentos -> ID mais_ident
+mais_ident -> SEMICOLON argumentos| LAMBDA
+pfalsa -> ELSE cmd | LAMBDA
+comandos -> cmd SEMICOLON | LAMBDA
+cmd -> READ OPEN_PAR variaveis CLOSE_PAR
+cmd -> WRITE OPEN_PAR variaveis CLOSE_PAR
+cmd -> WHILE OPEN_PAR condicao CLOSE_PAR DO cmd
+cmd -> IF condicao THEN cmd pfalsa
+cmd -> ID cmd_aux
+cmd -> BEGIN_P comandos END_P
+cmd -> FOR ID ATT expressao TO expressao DO corpo
+cmd_aux -> ATT expressao | lista_arg
+condicao -> expressao relacao expressao
+relacao -> EQ | DIFF | GREAT_EQ | LESS_EQ | GREATER | LESSER
+expressao -> termo outros_termos
+op_un -> PLUS | MINUS | LAMBDA
+outros_termos -> op_ad termo outros_termos
+op_ad -> PLUS | MINUS
+termo -> op_un fator mais_fatores
+mais_fatores -> op_mul fator mais_fatores | LAMBDA
+op_mul -> STAR | DASH
+fator -> ID | numero | OPEN_PAR expressao CLOSE_PAR
+numero -> NUM_INT | NUM_REAL
