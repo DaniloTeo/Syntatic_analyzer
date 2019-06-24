@@ -7,8 +7,10 @@ TO DO:
 	Implementar o parsing neste codigo; - DONE
 	Implementar regex_match. - DONE
 
-	Arrumar os parametros para a funcao de erro e as chamadas dela tb
+	Arrumar os parametros para a funcao de erro e as chamadas dela tb - DONE
 	Implementar uma main() com mensagem de sucesso ou nao
+	Mudar todos os 'simb' para codigo[pos] - DONE
+	Mudar todas as comparacoes com 'ID' para b_regex_match - DONE
 '''
 
 
@@ -115,11 +117,6 @@ if a<> b then write(a);
 end.'''
 
 
-
-
-
-
-
 # Expressoes regulares para gerar o tokenizador
 re_palavras_reservadas = 'program|begin|end|const|var|real|integer|procedure|if|then|else|read|write|while|do|for|to'
 re_simbolos = '>=|<=|<>|:=|=|>|<|\+|-|\*|/|\)|\(|,|\.|;|:'
@@ -133,56 +130,67 @@ codigo = tok.tokenize(raw)
 # posicao do leitor do programa sobre o codigo
 pos = 0
 
+# Contagem de erros ao longo da execucao
 error_count = 0
 
+# INICIO DAS FUNCOES AUXILIARES -------------------------------------------------------------------
+
+# Encapsula o incremento da posicao na leitura do codigo
 def obter_simbolo():
 	pos += 1
 
+# Funcao de erro atraves do metodo panico. Recebe uma mensagem a ser imprimida e um conjunto
+# de simbolos de sincronização. Incrementa o valor de error_count
 def erro(msg, conjunto_sinc): 
 	print('Erro!!\ttoken "{msg}" esperado!')
 	error_count += 1
 
 	while codigo[pos] not in conjunto_sinc:
 		obter_simbolo()
-	
-		
 
+# Realiza um match entre um padrao de expressao regular e uma dada string e retorna True/False
+# Ficar atento que isso é um regex match e nao um regex contains
+def b_regex_match(pattern, string):
+	return re.match(pattern, string) != None
+		
+# FIM DAS FUNCOES AUXILIARES ------------------------------------------------------------------------
 
 # <programa> -> program ident ; <corpo> .
 
-def programa(S):
-	if simb == 'program':
+def programa():
+	if codigo[pos] == 'program':
 		obter_simbolo()
-		if simb == ID:
+		if b_regex_match(ID, codigo[pos]):
 			obter_simbolo()
-			if simb == ';':
+			
+			if codigo[pos] == ';':
 				obter_simbolo()
-				corpo(S)
-				if simb == '.':
+				corpo()
+				if codigo[pos] == '.':
 					obter_simbolo()
 				else:
-					erro('.', [], S)
+					erro('.', [])
 			else:
-				erro(';', p_corpo, S)
+				erro(';', p_corpo + [])
 		else:
-			erro('identificador', ';', s)
+			erro('identificador', [';'])
 	else:
-		erro('program', [ID], S)
+		erro('program', [ID])
 
 # <corpo> -> <dc> begin <comandos> end
-def corpo(S):
-	dc(S)
+def corpo():
+	dc()
 	
-	if simb == 'begin':
+	if codigo[pos] == 'begin':
 		obter_simbolo()
 		comandos('end')
 
-		if simb == 'end':
+		if codigo[pos] == 'end':
 			obter_simbolo();
 		else:
-			erro('end',[],S)
+			erro('end', s_corpo)
 	else:
-		erro('begin', p_comandos, S)
+		erro('begin', p_corpo + s_corpo)
 	
 	
 	
@@ -190,182 +198,194 @@ def corpo(S):
 
 
 # <dc> -> <dc_c> <dc_v> <dc_p>
-def dc(S):
-	dc_c(S)
-	dc_v(S)
-	dc_p(S)
+def dc():
+	dc_c()
+	dc_v()
+	dc_p()
 
 #<dc_c> ::= const ident = <numero> ; <dc_c> | λ
-def dc_c(S):
-	if simb == 'const':
+def dc_c():
+	if codigo[pos] == 'const':
 		obter_simbolo()
-		if simb == ID: 
+		
+		if b_regex_match(ID, condigo[pos]): 
 			obter_simbolo()
-			if simb == '=':
+		
+			if codigo[pos] == '=':
 				obter_simbolo()
-				dc_c(S)
+				dc_c()
 			else:
-				erro('=', p_numero, S)
+				erro('=', p_numero + s_dc_c)
 		else:
-			erro('identificador', '=', S)
+			erro('identificador', ['='] + s_dc_c)
 	else:
 		continue #lambda 
 
 
 # <dc_v> -> var <variaveis> : <tipo_var> ; <dc_v> | λ
-def dc_v(S):
-	if simb == 'var':
-		variaveis(S)
-		if simb == ',':
+def dc_v():
+	if codigo[pos] == 'var':
+		variaveis()
+		
+		if codigo[pos] == ':':
 			obter_simbolo()
-			tipo_var(S)
-			if simb == ';':
+			tipo_var()
+			
+			if codigo[pos] == ';':
 				obter_simbolo()
-				dc_v(S)
+				dc_v()
 			else:
-				erro(';', p_dc_v, S)
+				erro(';', p_dc_v + s_dc_v)
 		else:
-			erro(',', p_tipo_var, S)
+			erro(':', p_tipo_var + s_dc_v)
 	else:
 		continue
 
 # <tipo_var> ::= real | integer
-def tipo_var(S):
-	if simb == 'float':
+def tipo_var():
+	if codigo[pos] == 'float':
 		obter_simbolo()
 	else:
-		if simb == 'int':
+		if codigo[pos] == 'int':
 			obter_simbolo()
 		else:
-			erro('tipo invalido', [], S)
+			erro('tipo invalido', s_tipo_var)
 
 # <variaveis> ::= ident <mais_var>
-def variaveis(S):
-	if simb == ID:
-		obter_simbolo
+def variaveis():
+	if b_regex_match(ID, codigo[pos]):
+		obter_simbolo()
+	
 	else:
-		erro('identificador', p_mais_var, S)
+		erro('identificador', p_mais_var + s_variaveis)
 
 # <mais_var> ::= , <variaveis> | λ
-def mais_var(S):
-	if simb == ',':
+def mais_var():
+	if codigo[pos] == ',':
 		obter_simbolo()
-		variaveis(S)
+		variaveis()
 	else:
 		continue
 
 # <dc_p> ::= procedure ident <parametros> ; <corpo_p> <dc_p> | λ
-def dc_p(S):
-	if simb == 'procedure':
+def dc_p():
+	if codigo[pos] == 'procedure':
 		obter_simbolo()
-		if simb == ID:
+
+		if b_regex_match(ID, codigo[pos]):
 			obter_simbolo()
-			if simb == ';':
+
+			if codigo[pos] == ';':
 				obter_simbolo()
-				corpo_p(S)
+				corpo_p()
 				dc_p()
+			
 			else:
-				erro(';', p_corpo_p, S)
+				erro(';', p_corpo_p + s_dc_p)
 		else:
-			erro('identificador', p_parametros, S)
+			erro('identificador', p_parametros + s_dc_p)
 	else:
 		continue
 
 
 # <parametros> ::= ( <lista_par> ) | λ
-def parametros(S):
-	if simb == '(':
+def parametros():
+	if codigo[pos] == '(':
 		obter_simbolo()
-		lista_par(S)
-		if simb == ')':
+		lista_par()
+
+		if codigo[pos] == ')':
 			obter_simbolo()
 		else:
-			erro(')', [], S)
+			erro(')', s_parametros)
 	else:
 		continue
 
 # <lista_par> ::= <variaveis> : <tipo_var> <mais_par>
-def lista_par(S):
-	variaveis(S)
+def lista_par():
+	variaveis()
 	
-	if simb == ':':
+	if codigo[pos] == ':':
 		obter_simbolo()
-		tipo_var(S)
-		mais_par(S)
+		tipo_var()
+		mais_par()
 	else:
-		erro(':', p_tipo_var, S)
+		erro(':', p_tipo_var + s_lista_par)
 
 
 # <mais_par> ::= ; <lista_par> | λ
-def mais_par(S):
-	if simb == ';':
+def mais_par():
+	if codigo[pos] == ';':
 		obter_simbolo()
-		lista_par(S)
+		lista_par()
 	else:
 		continue
 
 
 # <corpo_p> ::= <dc_loc> begin <comandos> end ;
-def corpo_p(S):
-	dc_loc(S)
+def corpo_p():
+	dc_loc()
 
-	if simb == 'begin':
+	if codigo[pos] == 'begin':
 		obter_simbolo()
-		comandos(S)
-		if simb == 'end':
+		comandos()
+		if codigo[pos] == 'end':
 			obter_simbolo()
-			if simb == ';':
+			if codigo[pos] == ';':
 				obter_simbolo()
 			else:
-				erro(';', [], S)
+				erro(';', s_corpo_p)
 		else:
-			erro('end', ';', S)
+			erro('end', [';'] + s_corpo_p)
 	else:
-		erro('begin', p_comandos, S)
+		erro('begin', p_comandos + s_corpo_p)
 
 # <dc_loc> ::= <dc_v>
-def dc_loc(S):
-	dc_v(S)
+def dc_loc():
+	dc_v()
 
 # <lista_arg> ::= ( <argumentos> ) | λ
-def lista_arg(S):
-	if simb == '(':
+def lista_arg():
+	if codigo[pos] == '(':
 		obter_simbolo()
-		argumentos(S)
-		if simb == ')':
+		argumentos()
+		
+		if codigo[pos] == ')':
 			obter_simbolo()
+	
 		else:
-			erro(')', [], S)
+			erro(')', s_lista_arg)
 	else:
 		continue
 
 # <argumentos> ::= ident <mais_ident>
-def argumentos(S):
-	if simb == ID:
-		mais_ident(S)
+def argumentos():
+	if b_regex_match(ID, codigo[pos]):
+		mais_ident()
+	
 	else:
-		erro('identificador', p_mais_ident, S)
+		erro('identificador', p_mais_ident + s_argumentos)
 
 # <mais_ident> ::= ; <argumentos> | λ
-def mais_ident(S):
-	if simb == ';':
+def mais_ident():
+	if codigo[pos] == ';':
 		obter_simbolo()
-		argumentos(S)
+		argumentos()
 	else:
 		continue
 
 # <pfalsa> ::= else <cmd> | λ
-def pfalsa(S):
-	if simb == 'else':
+def pfalsa():
+	if codigo[pos] == 'else':
 		obter_simbolo()
-		cmd(S)
+		cmd()
 	else:
 		continue
 
 # <comandos> ::= <cmd> ; <comandos> | λ
-def comandos(S):
-	cmd(S)
-	if simb == ';':
+def comandos():
+	cmd()
+	if codigo[pos] == ';':
 		obter_simbolo()
 
 # <cmd> ::= read ( <variaveis> ) |
@@ -377,177 +397,207 @@ def comandos(S):
 # begin <comandos> end
 
 
-def cmd(S):
-	if simb == 'read' or simb == 'write':
+def cmd():
+	if codigo[pos] == 'read' or codigo[pos] == 'write':
 		obter_simbolo()
-		if simb == '(':
+		
+		if codigo[pos] == '(':
 			obter_simbolo()
-			variaveis(S)
-			if simb == ')':
+			variaveis()
+			
+			if codigo[pos] == ')':
 				obter_simbolo()
+			
 			else:
-				erro(')', [], S)
+				erro(')', s_cmd)
 		else:
-			erro('(', p_variaveis, S)
-	elif simb == 'while':
+			erro('(', p_variaveis + s_cmd)
+	
+	elif codigo[pos] == 'while':
 		obter_simbolo()
-		if simb == '(':
+		
+		if codigo[pos] == '(':
 			obter_simbolo()
-			condicao(S)
-			if simb == ')':
-				if simb == 'do':
+			condicao()
+			
+			if codigo[pos] == ')':
+				if codigo[pos] == 'do':
 					obter_simbolo()
-					cmd(S)
+					cmd()
 				else:
-					erro('do', p_cmd, S)
+					erro('do', p_cmd + s_cmd)
 			else:
-				erro(')', 'do', S)
+				erro(')', ['do'] + s_cmd)
 		else:
-			erro('(', p_condicao, S)
+			erro('(', p_condicao + s_cmd)
 
-	elif simb == 'if':
+	elif codigo[pos] == 'if':
 		obter_simbolo()
-		condicao(S)
-		if simb == 'then':
+		condicao()
+		
+		if codigo[pos] == 'then':
 			obter_simbolo()
-			cmd(S)
-			pfalsa(S)
+			cmd()
+			pfalsa()
 		else:
-			erro('then', p_cmd, S)
-	elif simb == ID:
+			erro('then', p_cmd + s_cmd)
+	
+	elif b_regex_match(ID, codigo[pos]):
 		obter_simbolo()
-		cmd_aux(S)
-	elif simb == 'begin':
+		cmd_aux()
+	
+	elif codigo[pos] == 'begin':
 		obter_simbolo()
-		comandos(S)
-		if simb == 'end':
+		comandos()
+		
+		if codigo[pos] == 'end':
 			obter_simbolo()
 		else:
-			erro('end', [], S)
-	elif simb == 'for':
+			erro('end', s_cmd)
+	
+	elif codigo[pos] == 'for':
 		obter_simbolo()
-		if simb == ID:
+		
+		if b_regex_match(ID, codigo[pos]):
 			obter_simbolo()
-			if simb == ':=':
+			
+			if codigo[pos] == ':=':
 				obter_simbolo()
-				expressao(S)
-				if simb == 'to':
+				expressao()
+			
+				if codigo[pos] == 'to':
 					obter_simbolo()
-					expressao(S)
-					if simb == 'do':
+					expressao()
+			
+					if codigo[pos] == 'do':
 						obter_simbolo()
-						corpo(S)
+						corpo()
 					else:
-						erro('do', p_corpo, S)
+						erro('do', p_corpo + s_cmd)
 				else:
-					erro('to', p_expressao, S)
+					erro('to', p_expressao + s_cmd)
 			else:
-				erro(':=', p_expressao, S)
+				erro(':=', p_expressao + s_cmd)
 		else:
-			erro('identificador', ':=', S)
+			erro('identificador', [':='] + s_cmd)
 	else:
-		erro('funcao ou laco esperado', [ID, '('] + p_condicao + p_cmd_aux + p_comandos, S)
+		erro('funcao ou laco esperado', [ID, '('] + p_condicao + p_cmd_aux + p_comandos + s_cmd)
 
 
 
 # <cmd_aux> ::= := <expressao> | <lista_arg>
-def cmd_aux(S):
-	if simb == ':=':
+def cmd_aux():
+	if codigo[pos] == ':=':
 		obter_simbolo()
-		expressao(S)
+		expressao()
+	
 	else:
-		lista_arg(S)
+		lista_arg()
 
 # <condicao> ::= <expressao> <relacao> <expressao>
-def condicao(S):
-	expressao(S)
-	relacao(S)
-	expressao(S)
+def condicao():
+	expressao()
+	relacao()
+	expressao()
 
 # <relacao> ::= = | <> | >= | <= | > | <
-def relacao(S):
-	if simb == '=':
+def relacao():
+	if codigo[pos] == '=':
 		obter_simbolo()
-	elif simb == '<>':
+	
+	elif codigo[pos] == '<>':
 		obter_simbolo()
-	elif simb == '>=':
+	
+	elif codigo[pos] == '>=':
 		obter_simbolo()
-	elif simb == '<=':
+	
+	elif codigo[pos] == '<=':
 		obter_simbolo()
-	elif simb == '>':
+	
+	elif codigo[pos] == '>':
 		obter_simbolo()
-	elif simb == '<':
+	
+	elif codigo[pos] == '<':
 		obter_simbolo()
+	
 	else:
-		erro('comparador esperado', [], S)
+		erro('comparador esperado', s_relacao)
 
 
 # <expressao> ::= <termo> <outros_termos>
-def expressao(S):
-	termo(S)
-	outros_termos(S)
+def expressao():
+	termo()
+	outros_termos()
 
 # <op_un> ::= + | - | λ
-def op_un(S):
-	if simb == '+':
+def op_un():
+	if codigo[pos] == '+':
 		obter_simbolo()
-	elif simb == '-':
+	
+	elif codigo[pos] == '-':
 		obter_simbolo()
+	
 	else:
 		continue
 
 # <outros_termos> ::= <op_ad> <termo> <outros_termos> | λ
-def outros_termos(S):
-	op_ad(S)
-	termo(S)
-	outros_termos(S)
+def outros_termos():
+	op_ad()
+	termo()
+	outros_termos()
 
 # <op_ad> ::= + | -
-def op_ad(S):
-	if simb == '+':
+def op_ad():
+	if codigo[pos] == '+':
 		obter_simbolo()
-	elif simb == '-':
+	
+	elif codigo[pos] == '-':
 		obter_simbolo()
+	
 	else:
-		erro('soma ou subtracao esperados', [], S)
+		erro('soma ou subtracao esperados', s_op_ad)
 
 # <termo>::= <op_un> <fator> <mais_fatores>
-def termo(S):
-	op_un(S)
-	fator(S)
-	mais_fatores(S)
+def termo():
+	op_un()
+	fator()
+	mais_fatores()
 
 # <mais_fatores> ::= <op_mul> <fator> <mais_fatores> | λ
-def mais_fatores(S):
-	op_mul(S)
-	fator(S)
-	mais_fatores(S)
+def mais_fatores():
+	op_mul()
+	fator()
+	mais_fatores()
 
 # <op_mul> ::= * | /
-def op_mul(S):
-	if simb == '*':
+def op_mul():
+	if codigo[pos] == '*':
 		obter_simbolo()
-	elif simb == '/':
+	
+	elif codigo[pos] == '/':
 		obter_simbolo()
+	
 	else:
-		erro('multiplicacao ou divisao esperados', [], S)
+		erro('multiplicacao ou divisao esperados', s_op_mul)
 
 # <fator> ::= ident | <numero> | ( <expressao> )
-def fator(S):
-	if simb == ID:
+def fator():
+	if b_regex_match(ID, codigo[pos]):
 		obter_simbolo()
-	elif simb == '(':
+	
+	elif codigo[pos] == '(':
 		obter_simbolo()
-		expressao(S)
-		if simb == ')':
+		expressao()
+	
+		if codigo[pos] == ')':
 			obter_simbolo()
 		else:
-			erro(')', [], S)
+			erro(')', s_fator)
 	else:
-		numero(S)
+		numero()
 
 # <numero> ::= numero_int | numero_real
-def numero(S):
+def numero():
 	if b_regex_match(NUM_INT, simb):
 		obter_simbolo()
 	
@@ -557,7 +607,5 @@ def numero(S):
 	else:
 		erro('Numero real/inteiro', [], S)
 
-#Ficar atento que isso é um regex match e nao um regex contains
-def b_regex_match(pattern, string):
-	return re.match(pattern, string) != None
+
 
