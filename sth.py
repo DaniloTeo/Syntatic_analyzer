@@ -1,4 +1,5 @@
 import re
+import sys
 from nltk.tokenize import RegexpTokenizer
 
 '''
@@ -18,37 +19,49 @@ TO DO:
 
 #------------------------------------------------------------------------------------------------------------------
 
+# Macros de auxilio
+ID = '[a-zA-Z][a-zA-Z0-9]*'
+NUM_INT = '\d+'
+NUM_REAL = "\d+.\d+"
+
+# posicao do leitor do programa sobre o codigo
+pos = 0
+
+# Contagem de erros ao longo da execucao
+error_count = 0
+
+
 #LISTA DOS PRIMEIROS DE CADA REGRA
 
 p_program = ["program"]
-p_corpo = ["begin", "const", 'procedure', 'var', LAMBDA] #%$ - flag de transicao vazia
-p_dc = ['const', 'var', 'procedure', LAMBDA]
-p_dc_c = ['const', LAMBDA]
-p_dc_v = ['var', LAMBDA]
+p_corpo = ["begin", "const", 'procedure', 'var'] #%$ - flag de transicao vazia
+p_dc = ['const', 'var', 'procedure']
+p_dc_c = ['const']
+p_dc_v = ['var']
 p_tipo_var = ['real', 'integer']
 p_variaveis = [ID]
-p_mais_var = [',', LAMBDA]
-p_dc_p = ['procedure', LAMBDA]
-p_parametros = ['(', LAMBDA]
+p_mais_var = [',']
+p_dc_p = ['procedure']
+p_parametros = ['(']
 p_lista_par = [ID]
-p_mais_par = [';', LAMBDA]
-p_corpo_p = ['begin', 'var', LAMBDA]
-p_dc_loc = ['var', LAMBDA]
-p_lista_arg = ['(', LAMBDA]
+p_mais_par = [';']
+p_corpo_p = ['begin', 'var']
+p_dc_loc = ['var']
+p_lista_arg = ['(']
 p_argumentos = [ID]
-p_mais_ident = [';', LAMBDA]
-p_pfalsa = ['else', LAMBDA]
-p_comandos = ['read', 'write', 'while', 'if', 'begin', 'for', ID, LAMBDA]
+p_mais_ident = [';']
+p_pfalsa = ['else']
+p_comandos = ['read', 'write', 'while', 'if', 'begin', 'for', ID]
 p_cmd = ['read', 'write', 'while', 'if', 'begin', 'for', ID]
-p_cmd_aux = [':=', '(', LAMBDA]
-p_condicao = ['+', '-', '(', ID, NUM_REAL, NUM_INT, LAMBDA]
+p_cmd_aux = [':=', '(']
+p_condicao = ['+', '-', '(', ID, NUM_REAL, NUM_INT]
 p_relacao = ['=', '<>', '>=', '<=', '>', '<']
-p_expressao = ['+', '-', '(', ID, NUM_REAL, NUM_INT, LAMBDA]
-p_op_un = ['+', '-', LAMBDA]
+p_expressao = ['+', '-', '(', ID, NUM_REAL, NUM_INT]
+p_op_un = ['+', '-']
 p_outros_termos = ['+', '-']
 p_op_ad = ['+', '-']
-p_termo = ['+', '-', '(', ID, NUM_REAL, NUM_INT, LAMBDA]
-p_mais_fatores = ['*', '/', LAMBDA]
+p_termo = ['+', '-', '(', ID, NUM_REAL, NUM_INT]
+p_mais_fatores = ['*', '/']
 p_op_mul = ['*', '/']
 p_fator = ['(', ID, NUM_REAL, NUM_INT]
 p_numero = [NUM_INT, NUM_REAL]
@@ -90,11 +103,7 @@ s_fator = ['+', '-', '*', '/']
 s_numero = [';', '*', '/', '+', '-']
 
 #------------------------------------------------------------------------------------------------------------------
-# Macros de auxilio
-LAMBDA = '%$'
-ID = '[a-zA-Z][a-zA-Z0-9]*'
-NUM_INT = '\d+'
-NUM_REAL = "\d+.\d+"
+
 
 # Codigo para teste
 raw = '''program nome1;
@@ -121,32 +130,50 @@ end.'''
 re_palavras_reservadas = 'program|begin|end|const|var|real|integer|procedure|if|then|else|read|write|while|do|for|to'
 re_simbolos = '>=|<=|<>|:=|=|>|<|\+|-|\*|/|\)|\(|,|\.|;|:'
 re_num_id = '\d+\.\d+|\d+|[a-zA-Z][a-zA-Z0-9]*'
+re_comment = '{.*}'
 
 tok = RegexpTokenizer(re_palavras_reservadas + '|' + re_simbolos + '|' + re_num_id + '|' + re_comment)
 
 # Codigo tokenizado, sobre a qual o programa percorrera
 codigo = tok.tokenize(raw)
 
-# posicao do leitor do programa sobre o codigo
-pos = 0
 
-# Contagem de erros ao longo da execucao
-error_count = 0
 
 # INICIO DAS FUNCOES AUXILIARES -------------------------------------------------------------------
 
+def remove_comment():
+	global codigo
+
+	for elem in codigo:
+		if elem[0] == '{':
+			codigo.remove(elem)
+
+
 # Encapsula o incremento da posicao na leitura do codigo
 def obter_simbolo():
-	pos += 1
+	global pos
+	if pos < len(codigo):
+		pos += 1
+		#print(pos)
+	else:
+		print(f"Error count: {error_count}")
+		print("Programa Encerrado.")
+		sys.exit()
 
 # Funcao de erro atraves do metodo panico. Recebe uma mensagem a ser imprimida e um conjunto
 # de simbolos de sincronização. Incrementa o valor de error_count
 def erro(msg, conjunto_sinc): 
-	print('Erro!!\ttoken "{msg}" esperado!')
+	global error_count
+
+	print(f"{pos}: {codigo[pos]}")
+	print(f"Erro!!\ttoken '{msg}' esperado!")
 	error_count += 1
 
-	while codigo[pos] not in conjunto_sinc:
-		obter_simbolo()
+	for item in conjunto_sinc:
+		if item != codigo[pos]:
+			obter_simbolo()
+		else:
+			break
 
 # Realiza um match entre um padrao de expressao regular e uma dada string e retorna True/False
 # Ficar atento que isso é um regex match e nao um regex contains
@@ -183,7 +210,7 @@ def corpo():
 	
 	if codigo[pos] == 'begin':
 		obter_simbolo()
-		comandos('end')
+		comandos()
 
 		if codigo[pos] == 'end':
 			obter_simbolo();
@@ -219,12 +246,13 @@ def dc_c():
 		else:
 			erro('identificador', ['='] + s_dc_c)
 	else:
-		continue #lambda 
+		pass 
 
 
 # <dc_v> -> var <variaveis> : <tipo_var> ; <dc_v> | λ
 def dc_v():
 	if codigo[pos] == 'var':
+		obter_simbolo()
 		variaveis()
 		
 		if codigo[pos] == ':':
@@ -239,14 +267,14 @@ def dc_v():
 		else:
 			erro(':', p_tipo_var + s_dc_v)
 	else:
-		continue
+		pass
 
 # <tipo_var> ::= real | integer
 def tipo_var():
 	if codigo[pos] == 'float':
 		obter_simbolo()
 	else:
-		if codigo[pos] == 'int':
+		if codigo[pos] == 'integer':
 			obter_simbolo()
 		else:
 			erro('tipo invalido', s_tipo_var)
@@ -255,6 +283,7 @@ def tipo_var():
 def variaveis():
 	if b_regex_match(ID, codigo[pos]):
 		obter_simbolo()
+		mais_var()
 	
 	else:
 		erro('identificador', p_mais_var + s_variaveis)
@@ -265,7 +294,7 @@ def mais_var():
 		obter_simbolo()
 		variaveis()
 	else:
-		continue
+		pass
 
 # <dc_p> ::= procedure ident <parametros> ; <corpo_p> <dc_p> | λ
 def dc_p():
@@ -285,7 +314,7 @@ def dc_p():
 		else:
 			erro('identificador', p_parametros + s_dc_p)
 	else:
-		continue
+		pass
 
 
 # <parametros> ::= ( <lista_par> ) | λ
@@ -299,7 +328,7 @@ def parametros():
 		else:
 			erro(')', s_parametros)
 	else:
-		continue
+		pass
 
 # <lista_par> ::= <variaveis> : <tipo_var> <mais_par>
 def lista_par():
@@ -319,7 +348,7 @@ def mais_par():
 		obter_simbolo()
 		lista_par()
 	else:
-		continue
+		pass
 
 
 # <corpo_p> ::= <dc_loc> begin <comandos> end ;
@@ -356,11 +385,12 @@ def lista_arg():
 		else:
 			erro(')', s_lista_arg)
 	else:
-		continue
+		pass
 
 # <argumentos> ::= ident <mais_ident>
 def argumentos():
 	if b_regex_match(ID, codigo[pos]):
+		obter_simbolo()
 		mais_ident()
 	
 	else:
@@ -372,7 +402,7 @@ def mais_ident():
 		obter_simbolo()
 		argumentos()
 	else:
-		continue
+		pass
 
 # <pfalsa> ::= else <cmd> | λ
 def pfalsa():
@@ -380,7 +410,7 @@ def pfalsa():
 		obter_simbolo()
 		cmd()
 	else:
-		continue
+		pass
 
 # <comandos> ::= <cmd> ; <comandos> | λ
 def comandos():
@@ -421,6 +451,7 @@ def cmd():
 			condicao()
 			
 			if codigo[pos] == ')':
+				obter_simbolo()
 				if codigo[pos] == 'do':
 					obter_simbolo()
 					cmd()
@@ -538,7 +569,7 @@ def op_un():
 		obter_simbolo()
 	
 	else:
-		continue
+		pass
 
 # <outros_termos> ::= <op_ad> <termo> <outros_termos> | λ
 def outros_termos():
@@ -606,6 +637,18 @@ def numero():
 	
 	else:
 		erro('Numero real/inteiro', [], S)
+
+
+print("Inicio do programa")
+
+remove_comment()
+programa()
+
+if error_count == 0:
+	print(f"Codigo aceito!!")
+else:
+	print(f"Codigo possui erros sintáticos!")
+print("Programa Encerrado.")
 
 
 
